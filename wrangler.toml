@@ -1,0 +1,61 @@
+# IKID · Sổ sửa chữa (Kỹ thuật – Cơ sở)
+# Đẩy lên:  npx wrangler deploy
+#
+# Web tĩnh nằm ngay thư mục này. Web cũ đã dừng, nằm trong oms/.
+# Ảnh và video cất trong kho R2 tên "ikid-minhchung" (kho riêng tư,
+# file đi qua địa chỉ /anh/... của chính web này).
+
+name = "ikid-oms"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+[assets]
+directory = "."
+binding = "ASSETS"
+
+[[r2_buckets]]
+binding = "ANH"
+bucket_name = "ikid-minhchung"
+
+# ---------------------------------------------------------------
+# Kho dữ liệu D1 (thay Supabase từ 20/08/2026)
+# Vì sao đổi: Supabase tính tiền theo GB tải xuống, hết hạn mức là
+# chặn cả tháng — đã xảy ra 20/08. D1 tính theo số DÒNG đọc và
+# KHÔNG tính tải xuống. Miễn phí 5 triệu dòng/ngày, ta dùng ~12%.
+#
+# Tạo kho một lần:  npx wrangler d1 create ikid-kt
+# Rồi dán đúng database_id nó in ra vào dòng dưới.
+# ---------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "ikid-kt"
+database_id = "a878af1c-d73c-43e0-bfb3-b2200ecf7c16"
+
+# ---------------------------------------------------------------
+# AI CỦA CLOUDFLARE (20/09/2026 — Trường: "nên cài tính năng AI quét
+# phần báo lỗi của cơ sở để nó nhận diện nhóm lỗi luôn").
+# Không cần khoá API, không cần đăng ký dịch vụ ngoài: bật binding này
+# là worker gọi được thẳng. Dữ liệu phiếu KHÔNG rời khỏi Cloudflare.
+#
+# Hạn mức miễn phí: 10.000 Neuron/ngày. Một phiếu tốn ~1,8 Neuron nên
+# mỗi ngày đọc được ~5.500 phiếu vẫn không mất tiền — đội đang báo
+# khoảng 35 phiếu MỘT THÁNG.
+# ---------------------------------------------------------------
+[ai]
+binding = "AI"
+
+# Bản tin đầu buổi — HAI LẦN mỗi ngày.
+#   02:00 UTC = 9h sáng giờ Việt Nam  (Trường đổi 10/09, trước là 8h)
+#   06:00 UTC = 1h chiều giờ Việt Nam (thêm 21/10 — Trường: "9h khả năng
+#               chưa ai ngủ dậy")
+# Cloudflare chạy cron theo UTC, Việt Nam UTC+7.
+# Lượt chiều CHỈ gửi bản tin, KHÔNG chạy sao lưu — xem scheduled() cuối worker.js.
+[triggers]
+crons = ["0 2 * * *", "0 6 * * *"]
+
+[vars]
+EMAIL_QL = "quangtruong@ikidvn.com"
+
+# Khoá đẩy VAPID KHÔNG ghi vào đây. Cài bằng:
+#   npx wrangler secret put VAPID_PRIVATE
+#   npx wrangler secret put VAPID_PUBLIC

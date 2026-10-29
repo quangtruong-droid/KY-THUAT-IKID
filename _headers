@@ -1,0 +1,64 @@
+# Luật cache cho CDN Cloudflare (#46 Trường chốt 03/09).
+# Vì sao cần: 02/09 deploy đứt giữa chừng làm CDN găm kt-form.js?v=74 BẢN CŨ
+# vĩnh viễn — người dùng tải đúng địa chỉ mà nhận sai ruột. Giới hạn 1 giờ thì
+# có găm nhầm cũng tự lành, còn index và sw.js thì không bao giờ được găm.
+
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.json
+  Cache-Control: no-cache
+
+/kt.css
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-cauhinh.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-data.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-ui.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-form.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-quanly.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-anh.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-zalo.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-xlsx.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-day.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/kt-chay.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# luồng nén ảnh riêng (07/09) — không phải script của trang nên không có trong
+# index, nhưng vẫn cần luật cache như mọi file có ?v=
+/kt-nen.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# icon PWA — đổi ít, cho găm 1 ngày
+/icon-192.png
+  Cache-Control: public, max-age=86400
+/icon-512.png
+  Cache-Control: public, max-age=86400
+/icon-maskable-192.png
+  Cache-Control: public, max-age=86400
+/icon-maskable-512.png
+  Cache-Control: public, max-age=86400

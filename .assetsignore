@@ -1,0 +1,41 @@
+# Cloudflare CHỈ đọc file này để biết file nào KHÔNG đẩy lên làm trang web.
+# Thư mục deploy là "." nên mọi file ở đây đều thành file tải về được
+# từ ngoài internet — đó là lý do phải chặn.
+#
+# Mã chạy trên máy chủ, tuyệt đối không để người ngoài đọc:
+worker.js
+d1.js
+push.js
+push-mau.js
+ve.js
+# Cấu hình và công cụ:
+wrangler.toml
+*.bat
+*.ps1
+*.sql
+*.md
+*.txt
+*.zip
+.assetsignore
+# Ghi nhớ 21/09: thêm file sao-luu.ps1 vào thư mục thì nó ĐI THẲNG LÊN WEB,
+# tải về được từ ngoài internet — vì danh sách này lúc đó chỉ chặn *.bat.
+# BẤT CỨ file nào thêm vào thư mục mà không phải phần của trang web thì
+# phải khai ở đây TRƯỚC khi deploy. Mặc định là "lên web", không phải "ẩn".
+chuyen
+# Bản thử chạy trong máy — KHÔNG được lên web thật (24/09)
+XEM-THU.html
+# nen.jpg: 03/10 thử ba bản rồi Trường chốt vẽ hoa văn mạch điện bằng SVG
+# ngay trong kt.css. File ảnh hết dùng — chặn lại để khỏi tốn 204KB mỗi lượt
+# mở web. Vẫn giữ file trong thư mục; muốn dùng lại thì xoá dòng dưới đây.
+nen.jpg
+# Thư mục làm việc, nếu lỡ tạo lại:
+chuyen-d1/
+oms/
+node_modules/
+.git/
+# 29/10: đẩy mã nguồn lên GitHub. Ba file dưới là của Git, không phải của
+# web — đúng luật ghi ở trên nên khai ngay. (.git/ đã chặn từ trước,
+# DAY-LEN-GITHUB.bat thì rơi vào *.bat.)
+.gitignore
+.gitattributes
+.git-kho.txt

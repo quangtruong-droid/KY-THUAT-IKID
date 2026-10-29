@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0E7490">
+<title>Kỹ thuật IKID</title>
+<!-- ?v=260: icon doi 21/10 (them dai teal + banh rang + chu KT). Phai co
+     ?v= ne cache, khong thi iPhone giu icon cu tren man hinh chinh rat lau. -->
+<link rel="icon" href="icon-192.png?v=260">
+<link rel="apple-touch-icon" href="icon-192.png?v=260">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kỹ thuật IKID">
+<meta name="application-name" content="Kỹ thuật IKID">
+<script>/* 03/10: bỏ chế độ tối, chỉ còn giao diện sáng. Vẫn ép data-nen="sang" để
+   máy nào đang lưu 'toi' từ trước cũng về sáng ngay, khỏi phải xoá tay. */
+(function(){try{document.documentElement.dataset.nen='sang';
+localStorage.removeItem('kt_nen_v1');}catch(e){}})();</script>
+<link rel="stylesheet" href="kt.css?v=260">
+<!-- Bộ hiệu ứng giao diện (12/10) — Trường gửi, trích từ IKID Camera Audit.
+     Đặt SAU kt.css để mấy biến --hu-* ở cuối đè được bản gốc. -->
+<link rel="stylesheet" href="hieu-ung.css?v=260">
+</head>
+<body>
+
+<!-- ================= MÀN CHỌN NGƯỜI ================= -->
+<div id="manVao" class="manVao">
+  <div class="vaoDau">
+    <img src="logo-kh-mark.png" alt="IKID">
+    <h1>Bạn là ai?</h1>
+    <p>Bấm một lần, máy nhớ luôn. Lần sau mở là vào thẳng — không mật khẩu.</p>
+  </div>
+  <div class="vaoNoi" id="vaoNoi">
+    <div class="dangTai"><span class="vong"></span> Đang tải danh sách…</div>
+  </div>
+  <div class="vaoChan">Mọi thao tác đều ghi lại tên người bấm.<br>Lần sau muốn đổi người: giữ avatar góc trên bên phải 1 giây.</div>
+</div>
+
+<!-- ================= KHUNG CHÍNH ================= -->
+<div id="app" class="app an">
+
+  <header class="top">
+    <!-- 03/10: bọc nhóm bên trái vào một hộp để nó có nền trắng riêng khi thanh
+         trên mang ảnh nền. Không di chuyển gì — thứ tự và vị trí y như cũ. -->
+    <div class="topTrai">
+      <img src="logo-kh-mark.png" class="logo" alt="">
+      <div class="tenTop">
+        <b>Kỹ thuật IKID</b>
+        <div class="s" id="topPhu">Kỹ thuật &amp; Cơ sở</div>
+      </div>
+      <div class="thangChon" id="thangChon"></div>
+    </div>
+    <!-- 09/10: dải khẩu hiệu lấp chỗ trống giữa thanh trên (Trường: "phần
+         trống trắng ở giữa thanh này t muốn có điểm nhấn"). Chỉ trang trí,
+         không bấm được, không chen vào thứ tự phím Tab của mấy nút. -->
+    <div class="topGiua" aria-hidden="true">
+      <b>SỬA <em>NHANH</em> HƠN</b><i></i>
+      <b>VẬN HÀNH <em>TỐT</em> HƠN</b><i></i>
+      <b>TRẢI NGHIỆM <em>TUYỆT VỜI</em> HƠN</b>
+    </div>
+    <div class="topPhai">
+      <!-- Ô TÌM: bỏ khỏi màn hình (03/10 — Trường chốt). Giữ thẻ input nhưng ẩn
+           đi, vì nhiều chỗ trong mã còn đọc/ghi giá trị của nó (bỏ lọc, xoá tìm
+           khi đổi màn). Gỡ hẳn là phải sửa 6 chỗ, rủi ro hơn hẳn lợi ích. -->
+      <input id="oTim" class="oTim" hidden placeholder="Tìm nội dung, cơ sở, kỹ thuật…">
+      <button class="nutChuong" id="nutTai" title="Tải lại trang">↻</button>
+      <button class="nutChuong" id="nutChuong" title="Thông báo">🔔<i id="soChuong" class="an">0</i></button>
+      <button class="avTop" id="avTop" title="Cài đặt · giữ 1 giây để đổi người">··</button>
+      <!-- 16/10: tên người và vai nằm cạnh avatar, cả nhóm bọc trong một khối
+           nền trắng. Trước chỉ có avatar trơn trên nền mint, nhìn trống. -->
+      <div class="topAi" id="topAi"><b></b><i></i></div>
+    </div>
+  </header>
+
+  <!-- CỘT TRÁI (03/10 — Trường chốt): mấy nút Radar · Phân chia việc · Hiệu suất ·
+       Báo cáo · Tổng kết chuyển từ hàng ngang sang đây. Hẹp 56px chỉ icon, rê
+       chuột thì nở ra đè lên trên. Chỉ hiện trên máy tính; điện thoại giữ
+       nguyên thanh dưới. -->
+  <aside class="cotTrai" id="cotTrai"></aside>
+
+  <main class="than" id="than">
+    <section class="theHang" id="theHang"></section>
+    <section class="hangNut" id="hangNut"></section>
+    <section class="csHang" id="csHang"></section>
+    <section class="bdHang" id="bdHang"></section>
+    <section class="cbHang" id="cbHang"></section>
+    <section class="locHang" id="locHang"></section>
+    <section class="dsHang" id="dsHang"></section>
+  </main>
+
+  <button class="fab" id="fab" title="Giao việc cho kỹ thuật">＋</button>
+
+  <nav class="tabDay" id="tabDay">
+    <button class="tabI on" data-tab="ds"><em><img width="22" height="22" class="tabIc" src="ic/tab-danhsach.webp" alt=""></em>Danh sách</button>
+    <button class="tabI" data-tab="tk"><em><img width="22" height="22" class="tabIc" src="ic/tab-thongke.webp" alt=""></em>Thống kê</button>
+    <span class="tabI trong"></span>
+    <button class="tabI" data-tab="toi"><em><img width="22" height="22" class="tabIc" src="ic/dang-xu-ly.webp" alt=""></em>Của tôi</button>
+    <button class="tabI" data-tab="cd"><em><img width="22" height="22" class="tabIc" src="ic/av-khoa.webp" alt=""></em>Cài đặt</button>
+  </nav>
+</div>
+
+<!-- ================= NGĂN CHI TIẾT ================= -->
+<div class="nenMo an" id="nenMo"></div>
+<aside class="ngan an" id="ngan"></aside>
+
+<!-- ================= TẤM TRƯỢT (form) ================= -->
+<div class="nenSheet an" id="nenSheet"></div>
+<div class="sheet an" id="sheet"></div>
+
+<!-- ================= NHẮC / ĐANG LƯU ================= -->
+<div class="toast an" id="toast"></div>
+<div class="chan-luu an" id="chanLuu"><span class="vong"></span> Đang lưu…</div>
+<!-- hieu-ung.js phải nạp TRƯỚC 12 file kia: kt-data.js gọi HieuUng ngay trong
+     hàm nhac(), mà nhac() có thể chạy từ lúc web vừa mở (báo mất mạng…) -->
+<script src="hieu-ung.js?v=260" defer></script>
+<!-- Bộ hiệu ứng đợt 2 (21/10) — khung xám chờ mạng, rung phản hồi, thanh
+     hoàn tác. Tách riêng file nhỏ theo cách của web Camera Audit: sửa một
+     hiệu ứng thì chỉ tải lại 5 KB thay vì cả kt-ui.js 140 KB. -->
+<script src="kt-hieuung2.js?v=260" defer></script>
+<script src="kt-cauhinh.js?v=260" defer></script>
+<script src="kt-data.js?v=260" defer></script>
+<script src="kt-ui.js?v=260" defer></script>
+<script src="kt-form.js?v=260" defer></script>
+<script src="kt-quanly.js?v=260" defer></script>
+<script src="kt-anh.js?v=260" defer></script>
+<script src="kt-zalo.js?v=260" defer></script>
+<script src="kt-radar.js?v=260" defer></script>
+<script src="kt-tongket.js?v=260" defer></script>
+<script src="kt-xlsx.js?v=260" defer></script>
+<script src="kt-day.js?v=260" defer></script>
+<script src="kt-chay.js?v=260" defer></script>
+</body>
+</html>

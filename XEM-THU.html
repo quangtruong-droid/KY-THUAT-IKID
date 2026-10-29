@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XEM THỬ — Kỹ thuật IKID</title>
+<!--
+============================================================
+  BẢN THỬ CHẠY TRONG MÁY — MỞ BẰNG TRÌNH DUYỆT, KHÔNG ĐỤNG WEB THẬT
+  (24/09/2026)
+
+  Vì sao có file này: ngày 24/09 tao đẩy liền hai bản lên web thật mà không
+  ai mở thử. Một bản đặt trùng tên biến với file khác — cả web chết, 13 cơ sở
+  bấm gì cũng không ăn, giám đốc và mọi người cùng dính. Bộ test lúc đó kiểm
+  TỪNG FILE riêng nên không thể bắt được: từng file vẫn đúng cú pháp, lỗi chỉ
+  sinh ra khi trình duyệt nạp cả 13 file cùng lúc.
+
+  File này nạp đúng 13 file JS thật + CSS thật, y như web thật, nhưng:
+    · Mọi lời gọi mạng bị chặn và thay bằng DỮ LIỆU GIẢ — không đụng kho thật
+    · Lỗi JS nào cũng hiện lên một bảng đỏ to giữa màn hình, không im lặng
+    · Không đăng ký service worker, không gửi thông báo, không tải ảnh lên
+
+  CÁCH DÙNG: bấm đúp file này. Xem giao diện, bấm thử các nút.
+  Không thấy bảng đỏ + bấm được = an toàn để chạy DEPLOY.
+============================================================
+-->
+<link rel="stylesheet" href="kt.css">
+<style>
+#loiTo{position:fixed;inset:12px;z-index:99999;background:#7F1D1D;color:#fff;
+  border-radius:12px;padding:18px;overflow:auto;font:13px/1.55 ui-monospace,Consolas,monospace;display:none}
+#loiTo h2{margin:0 0 10px;font:600 17px/1.3 system-ui}
+#loiTo .m{background:rgba(0,0,0,.25);border-radius:8px;padding:10px;margin:8px 0;white-space:pre-wrap}
+#bangThu{position:fixed;left:0;right:0;bottom:0;z-index:9998;background:#0E7490;color:#fff;
+  padding:7px 12px;font:600 12px/1.4 system-ui;display:flex;gap:12px;align-items:center}
+#bangThu b{background:rgba(255,255,255,.2);border-radius:99px;padding:2px 9px}
+body{padding-bottom:34px}
+</style>
+</head>
+<body>
+
+<div id="loiTo"><h2>⛔ CÓ LỖI — KHÔNG ĐƯỢC DEPLOY</h2><div id="loiND"></div></div>
+
+<!-- khung y hệt web thật, để các hàm vẽ có chỗ mà vẽ -->
+<div id="manVao" class="manVao">
+  <div class="vaoDau"><h1>Bạn là ai?</h1><p>Bản thử — dữ liệu giả</p></div>
+  <div class="vaoNoi" id="vaoNoi"></div>
+  <div class="vaoChan">BẢN THỬ TRONG MÁY</div>
+</div>
+
+<div id="app" class="app an">
+  <header class="top">
+    <div class="tenTop"><b>Kỹ thuật IKID</b><div class="s" id="topPhu">bản thử</div></div>
+    <div class="thangChon" id="thangChon"></div>
+    <div class="topPhai">
+      <input id="oTim" class="oTim" placeholder="Tìm…">
+      <button class="nutChuong" id="nutNen">🌓</button>
+      <button class="nutChuong" id="nutTai">↻</button>
+      <button class="nutChuong" id="nutChuong">🔔<i id="soChuong" class="an">0</i></button>
+      <button class="avTop" id="avTop">··</button>
+    </div>
+  </header>
+  <main class="than" id="than">
+    <section class="theHang" id="theHang"></section>
+    <section class="hangNut" id="hangNut"></section>
+    <section class="csHang" id="csHang"></section>
+    <section class="bdHang" id="bdHang"></section>
+    <section class="cbHang" id="cbHang"></section>
+    <section class="locHang" id="locHang"></section>
+    <section class="dsHang" id="dsHang"></section>
+  </main>
+  <button class="fab" id="fab">＋</button>
+  <nav class="tabDay" id="tabDay"></nav>
+</div>
+
+<div class="nenMo an" id="nenMo"></div>
+<aside class="ngan an" id="ngan"></aside>
+<div class="nenSheet an" id="nenSheet"></div>
+<div class="sheet an" id="sheet"></div>
+<div class="toast an" id="toast"></div>
+<div class="chan-luu an" id="chanLuu"><span class="vong"></span> Đang lưu…</div>
+
+<div id="bangThu">🧪 BẢN THỬ — dữ liệu giả, không đụng web thật <b id="thuTT">đang nạp…</b></div>
+
+<script>
+/* ---------- bắt mọi lỗi, không cho im lặng ---------- */
+(function () {
+  const hop = document.getElementById('loiTo'), nd = document.getElementById('loiND');
+  let so = 0;
+  function hien(tieu, chiTiet) {
+    so++;
+    hop.style.display = 'block';
+    nd.insertAdjacentHTML('beforeend', '<div class="m"><b>' + tieu + '</b>\n' + chiTiet + '</div>');
+    const t = document.getElementById('thuTT');
+    if (t) { t.textContent = so + ' LỖI'; t.style.background = '#DC2626'; }
+  }
+  window.addEventListener('error', e => {
+    if (e.message) hien(e.message, (e.filename || '').split('/').pop() + ' dòng ' + e.lineno);
+  });
+  window.addEventListener('unhandledrejection', e =>
+    hien('Lời hứa bị từ chối', String((e.reason && e.reason.message) || e.reason)));
+})();
+
+/* ---------- DỮ LIỆU GIẢ ---------- */
+const GIA = {
+  co_so: [
+    { id: 'CS07', ten: 'Time City', trang_thai: 'hoatdong', kt_phu_trach: null },
+    { id: 'CS08', ten: 'Royal City', trang_thai: 'hoatdong', kt_phu_trach: null },
+    { id: 'CS09', ten: 'IPH', trang_thai: 'hoatdong', kt_phu_trach: null }
+  ],
+  gian_hang: [
+    { id: 'GH07', co_so_id: 'CS07', ten: 'Tutu Train' },
+    { id: 'GH09', co_so_id: 'CS08', ten: 'Pinball' },
+    { id: 'GH11', co_so_id: 'CS09', ten: 'Funzone' }
+  ],
+  kt_nguoi: [
+    { id: 'ql', ten: 'Quản Lý', vai: 'quanly', co_so_id: null, mau: '#0E7490', thu_tu: 99, hien: 1 },
+    { id: 'tho_a', ten: 'Thợ Thử Một', vai: 'tho', co_so_id: null, mau: '#B45309', thu_tu: 2, hien: 1 },
+    { id: 'tho_b', ten: 'Thợ Thử Hai', vai: 'tho', co_so_id: null, mau: '#1D4ED8', thu_tu: 3, hien: 1 },
+    { id: 'cht_07', ten: 'CHT Thử ( Time City )', vai: 'coso', co_so_id: 'CS07', mau: '#BE185D', thu_tu: 20, hien: 1 }
+  ],
+  phieu_loi: [],
+  chat: [],
+  kt_lich: [],
+  doc: 0
+};
+(function dungPhieu() {
+  const gio = 3600000, nay = Date.now();
+  const mau = [
+    ['KT-9001', 'CS07', 'GH07', 'Nắp chuồng heo bị heo húc bay ra ngoài', 'tiepnhan', 'binhthuong', 3, nay - gio * 0.2, 'Thợ Thử Một', 'Em đã đặt 4 tấm bên anh Việt ạ', 0],
+    ['KT-9002', 'CS08', 'GH09', 'Máy pinball kẹt bi, không nhả bi ra', 'moi', 'khancap', 1, nay - gio, 'CHT Thử ( Time City )', '', 2],
+    ['KT-9003', 'CS09', 'GH11', 'Thay bóng đèn khu vực cầu trượt', 'nghiemthu', 'binhthuong', 1, nay - gio * 26, 'Thợ Thử Hai', 'đã xong rồi anh nhé', 0],
+    ['KT-9004', 'CS07', 'GH07', 'Camera lỗi dữ liệu, không xem lại được', 'dangsua', 'binhthuong', 1, nay - gio * 50, 'Thợ Thử Một', 'mai em qua xem ạ', 0],
+    ['KT-9005', 'CS08', 'GH09', 'Sàn thảm bong mép, trẻ dễ vấp', 'moi', 'binhthuong', 0, 0, '', '', 0]
+  ];
+  mau.forEach(m => {
+    GIA.phieu_loi.push({
+      id: m[0], co_so_id: m[1], gian_hang_id: m[2], thiet_bi: m[3], mo_ta: '',
+      loai: 'kythuat', loai_loi: 'khac', muc_do: m[5], trang_thai: m[4],
+      dang_vuong: null, vuong_ghi: null, nguoi_tao: 'CHT Thử ( Time City )',
+      ngay_tao: new Date(nay - 3600000 * 60).toISOString(), mong_muon: null,
+      nguoi_nhan_kt: m[4] === 'moi' ? null : 'Thợ Thử Một', nhan_luc: null, du_kien: null,
+      done_at: null, nguoi_sua: [], chi_phi: 0, xu_ly_ghi: null,
+      cht_ket_qua: null, cht_nguoi: null, cht_luc: null, cht_ghi: null,
+      anh_truoc: [], anh_sau: [], nguon_kt: 'ktweb', deleted: false, ly_do_tre: null, nguoi_giao: []
+    });
+    if (m[6]) GIA.chat.push({
+      phieu_id: m[0], so: m[6], cuoi: new Date(m[7]).toISOString(),
+      tin: m[8], ai: m[8] || m[9] ? m[8] ? m[8] : '' : '', so_anh: m[9]
+    });
+  });
+  /* sửa lại cho đúng cột: ai = người nhắn, tin = nội dung */
+  GIA.chat.forEach((c, i) => { const m = mau[i]; c.ai = m[8]; c.tin = m[9]; c.so_anh = m[10]; });
+})();
+
+/* ---------- CHẶN MẠNG: không một lời gọi nào ra ngoài ---------- */
+window.fetch = async function (dau) {
+  const d = String(typeof dau === 'string' ? dau : (dau && dau.url) || '');
+  const tra = o => new Response(JSON.stringify(o), { headers: { 'content-type': 'application/json' } });
+  if (d.indexOf('tai-het') >= 0) return tra(GIA);
+  if (d.indexOf('/api/ve') >= 0) return tra({ ve: 'thu.thu', han: 30 });
+  if (d.indexOf('dien-bien') >= 0) return tra({ ds: [], xem: [] });
+  if (d.indexOf('/api/kho') >= 0) return tra({ soFile: 0, dungLuong: 0, mb: 0 });
+  if (d.indexOf('day-khoa') >= 0) return tra({ bat: false });
+  return tra({ ok: true });
+};
+/* không đăng ký service worker, không xin quyền thông báo trong bản thử */
+if (navigator.serviceWorker) {
+  try { Object.defineProperty(navigator, 'serviceWorker', { get: () => undefined }); } catch (e) { }
+}
+try { localStorage.setItem('kt_nguoi_v1', JSON.stringify({ id: 'ql', ten: 'Quản Lý', vai: 'quanly', coSoId: null, mau: '#0E7490', anh: '' })); } catch (e) { }
+</script>
+
+<!-- nạp ĐÚNG 13 file như web thật, không có ?v= để luôn lấy bản mới nhất -->
+<script src="kt-cauhinh.js"></script>
+<script src="kt-data.js"></script>
+<script src="kt-ui.js"></script>
+<script src="kt-form.js"></script>
+<script src="kt-quanly.js"></script>
+<script src="kt-anh.js"></script>
+<script src="kt-zalo.js"></script>
+<script src="kt-radar.js"></script>
+<script src="kt-tongket.js"></script>
+<script src="kt-xlsx.js"></script>
+<script src="kt-day.js"></script>
+<script src="kt-chay.js"></script>
+
+<script>
+/* nạp xong mà không có lỗi nào thì báo xanh */
+setTimeout(() => {
+  const t = document.getElementById('thuTT');
+  if (t && t.textContent === 'đang nạp…') {
+    t.textContent = 'NẠP SẠCH — bấm thử các nút';
+    t.style.background = 'rgba(255,255,255,.25)';
+  }
+}, 1200);
+</script>
+</body>
+</html>

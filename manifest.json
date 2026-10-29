@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Kỹ thuật IKID",
+  "short_name": "Kỹ thuật IKID",
+  "description": "Cơ sở giao việc, kỹ thuật tiếp nhận và sửa, CHT nghiệm thu.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#F5F7FA",
+  "theme_color": "#0E7490",
+  "lang": "vi",
+  "dir": "ltr",
+  "icons": [
+    { "src": "/icon-192.png?v=260", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png?v=260", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-192.png?v=260", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png?v=260", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

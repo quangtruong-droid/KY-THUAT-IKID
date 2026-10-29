@@ -1,0 +1,124 @@
+/* =====================================================================================
+   BỘ HIỆU ỨNG GIAO DIỆN – trích từ IKID Camera Audit (10–11/10/2026) · dùng độc lập
+   Không phụ thuộc thư viện. Tất cả hiệu ứng CHUYỂN ĐỘNG tự tắt khi máy bật "giảm chuyển động"
+   (Windows: Cài đặt → Trợ năng → Hiệu ứng hoạt ảnh · iPhone: Giảm chuyển động).
+   Đổi màu: sửa các biến --hu-* ở :root bên dưới.
+   ===================================================================================== */
+:root {
+  --hu-the: #ffffff;          /* nền thẻ / khối */
+  --hu-chu: #1f2937;          /* chữ chính */
+  --hu-mo: #6b7280;           /* chữ phụ */
+  --hu-vien: #F0E4D2;         /* viền thẻ */
+  --hu-vang: #E0A21F;         /* màu nhấn (vạch, vương miện) */
+  --hu-vang-nhat: #F6C453;    /* nền sáng khi nháy dòng */
+  --hu-xanh: #16a34a;         /* thành công */
+  --hu-do: #dc2626;           /* lỗi / cần xử lý gấp */
+  --hu-cam: #d97706;          /* cảnh báo */
+  --hu-lam: #2563eb;          /* thông tin */
+}
+
+/* ---------- 1. KHỐI HIỆN DẦN khi mở trang (từng khối trượt nhẹ lên, lần lượt) ----------
+   JS: HieuUng.vaoMan(khungTrang) – tự gắn .hu-vao + thứ tự --hu-i cho các khối con */
+.hu-vao { animation: huVao .32s cubic-bezier(.2, .7, .3, 1) both; animation-delay: calc(var(--hu-i, 0) * 55ms); }
+@keyframes huVao { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 2. SỐ ĐẾM CHẠY từ 0 lên số thật – CSS không cần, xem JS HieuUng.demSo() ---------- */
+
+/* ---------- 3. THANH BIỂU ĐỒ DÀI DẦN RA ----------
+   HTML: <div class="hu-thanh-nen"><i class="hu-thanh" style="width:72%"></i></div> */
+.hu-thanh-nen { height: 10px; border-radius: 99px; background: #F1EADF; overflow: hidden; }
+.hu-thanh { display: block; height: 100%; border-radius: inherit; background: var(--hu-vang); transform-origin: left center; animation: huThanh .55s cubic-bezier(.2, .7, .3, 1) both; transition: filter .15s; }
+.hu-thanh-nen:hover .hu-thanh { filter: brightness(1.12) saturate(1.15); }
+@keyframes huThanh { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---------- 4. DÒNG VỪA ĐỔI TRẠNG THÁI SÁNG NHẤP 1 LẦN (sau khi lưu / duyệt / gửi) ----------
+   JS: HieuUng.nhayDong(phanTu) – dùng được cho <tr> hoặc thẻ bất kỳ */
+tr.hu-nhay > td, .hu-nhay:not(tr) { animation: huNhay 1.4s ease-out; }
+@keyframes huNhay { 0%, 25% { box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--hu-vang-nhat) 30%, transparent); } 100% { box-shadow: inset 0 0 0 9999px transparent; } }
+
+/* ---------- 5. Ô CẦN XỬ LÝ "THỞ" VIỀN (ô số có việc tồn > 0) ----------
+   HTML: <div class="the hu-tho" style="--hu-mau:#dc2626">…</div> (màu tuỳ ô; mặc định đỏ) */
+.hu-tho { animation: huTho 2.6s ease-in-out infinite; }
+@keyframes huTho {
+  0%, 100% { box-shadow: 0 0 0 0 transparent, 0 6px 18px -14px rgba(120, 80, 20, .55); border-color: var(--hu-vien); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hu-mau, var(--hu-do)) 16%, transparent), 0 6px 18px -14px rgba(120, 80, 20, .55); border-color: color-mix(in srgb, var(--hu-mau, var(--hu-do)) 45%, var(--hu-vien)); }
+}
+
+/* ---------- 6. HUY HIỆU TOP 1-2-3 LẤP LÁNH + VƯƠNG MIỆN NHÚN (#1) ----------
+   HTML: <span class="hu-top h1">1</span> · h2 · h3 · thêm .hu-loai = bị loại (xám, không lấp lánh, không vương miện)
+   JS: HieuUng.gan() tự chèn vương miện vào .hu-top.h1 */
+.hu-top { position: relative; display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 99px; font-weight: 800; font-size: 12px; color: #fff; background: #9ca3af; overflow: hidden; }
+.hu-top.h1 { background: linear-gradient(135deg, #F2C14E, #D9932A); overflow: visible; }
+.hu-top.h2 { background: linear-gradient(135deg, #C9D1DC, #8D99AB); }
+.hu-top.h3 { background: linear-gradient(135deg, #E3A57A, #B5703F); }
+.hu-top:is(.h1, .h2, .h3)::after { content: ""; position: absolute; inset: -20% auto -20% -60%; width: 40%; transform: skewX(-20deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .85), transparent); animation: huLap 3.2s ease-in-out infinite; pointer-events: none; }
+.hu-top.h1::after { border-radius: 99px; } .hu-top.h2::after { animation-delay: .4s; } .hu-top.h3::after { animation-delay: .8s; }
+.hu-top .hu-vuong { position: absolute; top: -12px; left: 50%; width: 14px; height: 14px; color: var(--hu-vang); transform: translateX(-50%); animation: huVuong 2.4s ease-in-out infinite; }
+.hu-top.hu-loai { background: #E5E7EB; color: var(--hu-mo); } .hu-top.hu-loai::after, .hu-top.hu-loai .hu-vuong { display: none; }
+@keyframes huLap { 0%, 60% { left: -60%; } 100% { left: 140%; } }
+@keyframes huVuong { 0%, 100% { transform: translateX(-50%) translateY(0) rotate(0); } 50% { transform: translateX(-50%) translateY(-1.5px) rotate(-8deg); } }
+
+/* ---------- 7. ICON NHÚN KHI RÊ CHUỘT VÀO THẺ ----------
+   HTML: <div class="hu-nhun-cha"> … <span class="hu-nhun">icon</span> … </div> */
+.hu-nhun { display: inline-grid; }
+.hu-nhun-cha:hover .hu-nhun { animation: huNhun .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes huNhun { 0% { transform: scale(1); } 40% { transform: scale(1.18) rotate(-6deg); } 100% { transform: scale(1) rotate(0); } }
+/* mũi tên tăng / giảm nhấp lên 2 lần khi rê chuột: <em class="hu-mui">↑ 12%</em> */
+.hu-mui { display: inline-block; }
+.hu-nhun-cha:hover .hu-mui { animation: huMui .6s ease-in-out 2; }
+@keyframes huMui { 50% { transform: translateY(-2px); } }
+
+/* ---------- 8. NỀN TRANG TRÔI MÀU RẤT CHẬM (24 giây, biên độ nhỏ) ----------
+   HTML: <body class="hu-nen-troi"> */
+.hu-nen-troi { background: linear-gradient(160deg, #FBF3E4 0%, #F6E6C8 45%, #F3DDB5 70%, #FBF0DC 100%) fixed; background-size: 180% 180%; animation: huNen 24s ease-in-out infinite alternate; }
+@keyframes huNen { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
+
+/* ---------- 9. KHỐI TIÊU ĐỀ TRANG: icon bật · chữ trượt vào · vạch vàng chạy dưới chân · vệt sáng lướt qua mỗi 7 giây ----------
+   HTML: <div class="hu-tieu-de"><span class="hu-tieu-de-ic">icon</span><h1>Tên trang</h1></div>
+   JS: HieuUng.tieuDeVao(khoi) mỗi lần đổi trang */
+.hu-tieu-de { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 10px; padding: 5px 16px 5px 6px; border-radius: 14px; background: var(--hu-the); border: 1px solid var(--hu-vien); box-shadow: 0 6px 16px -12px rgba(120, 80, 20, .5); }
+.hu-tieu-de h1 { margin: 0; font-size: 19px; font-weight: 900; letter-spacing: -.01em; }
+.hu-tieu-de-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: var(--hu-k, var(--hu-vang)); background: color-mix(in srgb, var(--hu-k, var(--hu-vang)) 12%, var(--hu-the)); border: 1px solid color-mix(in srgb, var(--hu-k, var(--hu-vang)) 26%, var(--hu-the)); }
+.hu-tieu-de-ic svg { width: 18px; height: 18px; }
+.hu-tieu-de::before { content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; transform: skewX(-18deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .9), transparent); animation: huSang 7s ease-in-out infinite 1.2s; pointer-events: none; z-index: 1; }
+.hu-tieu-de.hu-tt-vao .hu-tieu-de-ic { animation: huBat .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+.hu-tieu-de.hu-tt-vao h1 { animation: huTruot .35s ease-out both; }
+.hu-tieu-de.hu-tt-vao::after { content: ""; position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; border-radius: 3px; background: linear-gradient(90deg, #F2B84B, #D9932A); transform-origin: left; animation: huVach .7s ease-out both; }
+@keyframes huBat { 0% { transform: scale(.4) rotate(-12deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes huTruot { from { transform: translateX(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes huVach { 0% { transform: scaleX(0); opacity: 1; } 70% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+@keyframes huSang { 0%, 82% { left: -40%; } 100% { left: 130%; } }
+
+/* ---------- 10. THÔNG BÁO NHỎ (toast): thẻ trắng, icon + viền trái theo loại, trượt lên ----------
+   JS: HieuUng.toast('Đã lưu', 'ok' | 'error' | 'info') */
+.hu-toast { position: fixed; left: 50%; bottom: 28px; z-index: 3000; display: inline-flex; align-items: center; gap: 10px; max-width: min(560px, calc(100vw - 32px)); padding: 12px 18px 12px 14px; border-radius: 12px;
+  background: var(--hu-the); color: var(--hu-chu); border: 1px solid var(--hu-vien); border-left: 4px solid var(--hu-lam); box-shadow: 0 16px 36px -14px rgba(60, 40, 10, .45); font-weight: 600; transform: translateX(-50%); animation: huToast .25s ease-out; }
+.hu-toast svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--hu-lam); }
+.hu-toast.ok { border-left-color: var(--hu-xanh); } .hu-toast.ok svg { color: var(--hu-xanh); }
+.hu-toast.error { border-left-color: var(--hu-do); } .hu-toast.error svg { color: var(--hu-do); }
+.hu-toast.tat { opacity: 0; transition: opacity .25s; }
+@keyframes huToast { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ---------- 11. XONG VIỆC: dấu ✓ nảy giữa màn + câu xác nhận, tự tắt sau ~1,3 giây ----------
+   JS: await HieuUng.xong('Đã gửi phiếu', 'Đã xong – quay lại danh sách') */
+.hu-xong { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; background: rgba(20, 28, 40, .28); animation: huXongVao .18s ease-out; }
+.hu-xong.tat { opacity: 0; transition: opacity .2s; }
+.hu-xong-k { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 260px; padding: 26px 34px; border-radius: 18px; background: var(--hu-the); color: var(--hu-chu); box-shadow: 0 18px 50px rgba(0, 0, 0, .25); text-align: center; }
+.hu-xong-ic { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: var(--hu-xanh); color: #fff; animation: huNay .35s ease-out; }
+.hu-xong-ic svg { width: 32px; height: 32px; }
+.hu-xong-k b { font-size: 17px; } .hu-xong-k small { color: var(--hu-mo); font-size: 13px; }
+@keyframes huXongVao { from { opacity: 0; } }
+@keyframes huNay { 0% { transform: scale(.4); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+/* phần tử được trỏ tới sau khi xong (vd dòng việc tiếp theo) */
+.hu-den { outline: 3px solid var(--hu-vang) !important; outline-offset: -3px; transition: outline .3s; }
+
+/* ---------- 12. CHUÔNG / NÚT CÓ VIỆC GẤP: nhịp vòng sáng lan ra ----------
+   HTML: <button class="hu-nhip">🔔</button> (màu theo --hu-mau, mặc định đỏ) */
+.hu-nhip { animation: huNhip 2.4s ease-in-out infinite; }
+@keyframes huNhip { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hu-mau, var(--hu-do)) 45%, transparent); } 50% { box-shadow: 0 0 0 7px transparent; } }
+
+/* ---------- TẮT MỌI CHUYỂN ĐỘNG khi người dùng bật "giảm chuyển động" ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hu-vao, .hu-thanh, .hu-nhay, tr.hu-nhay > td, .hu-tho, .hu-top::after, .hu-vuong, .hu-nhun, .hu-mui, .hu-nen-troi,
+  .hu-tieu-de::before, .hu-tieu-de::after, .hu-tieu-de *, .hu-toast, .hu-xong, .hu-xong-ic, .hu-nhip { animation: none !important; }
+}

@@ -1,0 +1,43 @@
+# ============================================================
+#  DANH SACH FILE **KHONG** DAY LEN GITHUB
+#
+#  Kho GitHub phai de PRIVATE. Nhung du private van phai chan may thu duoi
+#  day: mot la chung tu sinh lai duoc (dua len chi to kho), hai la chung co
+#  the chua ban sao du lieu that.
+#
+#  FILE NAY VIET KHONG DAU - cho dong bo voi .assetsignore va may file .ps1.
+# ============================================================
+
+# --- Rac may tu sinh ra moi lan deploy, khong phai ma nguon ---
+.wrangler/
+node_modules/
+chuyen-d1/
+oms/
+
+# --- Ban xuat zip (co chua TOAN BO database that) ---
+# Thu muc BAN-XUAT nam o thu muc cha nen vong ngoai kho roi, nhung cu chan
+# cho chac, phong khi sau nay doi cho.
+BAN-XUAT/
+*.zip
+*.sql
+*.rar
+*.7z
+
+# --- File tam cua Windows / trinh soan ---
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*~
+.DS_Store
+.vscode/
+
+# --- Thong tin dang nhap: KHONG BAO GIO day len ---
+# Hien tai khong co file nao nhu nay (khoa VAPID nam trong D1, khong nam
+# trong ma). Chan san de sau nay lo tao ra cung khong di nham.
+.dev.vars
+.env
+.env.*
+*.pem
+*.key
+wrangler.toml.local
