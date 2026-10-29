@@ -607,7 +607,7 @@ function vaiCanTin() {
 function kiemChanDay() {
   if (!canChanDay()) { dongManChan(); return; }
   if (vaiCanTin()) {
-    /* CHT và kỹ thuật: hoãn tối đa 30 phút rồi hỏi lại */
+    /* CHT và kỹ thuật: hoãn tối đa MỘT TIẾNG rồi hỏi lại (xem HOAN_PHUT) */
     const den = Number(localStorage.getItem(KHOA_HOAN) || 0);
     if (den && Date.now() < den) return;
     veManChan();
