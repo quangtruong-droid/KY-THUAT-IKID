@@ -292,6 +292,104 @@ export default {
     }
 
     /* ============================================================
+       4b) SOI KHO THEO LOẠI FILE (06/11 — đo trước khi quyết tối ưu video)
+
+       /api/kho chỉ trả tổng, không cho biết video chiếm bao nhiêu trong đó.
+       Mà tổng thì vô dụng khi phải quyết "có đáng bỏ công nén video không":
+       nếu video chỉ chiếm 10% kho thì nén video là chữa nhầm chỗ.
+
+       Đường này CHỈ ĐỌC, không sửa không xoá gì. Duyệt một lượt danh sách kho,
+       phân loại theo đuôi file rồi cộng lại.
+
+       BA NHÓM TÁCH RIÊNG, và phải tách thì số mới đúng:
+         video    — mp4 / mov / webm
+         ảnh gốc  — jpg / png / webp / heic KHÔNG có đuôi "-nho"
+         ảnh nhỏ  — bản thu nhỏ "-nho", mỗi ảnh gốc có một bản
+       Gộp hai loại ảnh vào nhau là đếm mỗi tấm hai lần, ra số sai — đã vấp
+       đúng cái bẫy này hồi làm hàm dọn rác (tưởng 683 file rác, thật ra 491).
+
+       PHÂN BỐ CỠ VIDEO cũng trả về luôn: biết bao nhiêu video chui lọt dưới
+       ngưỡng 6MB (đi một phát) và bao nhiêu phải cắt mảnh thì mới biết hạ
+       thời lượng xuống 20 giây có thật sự dồn được phần lớn video xuống dưới
+       ngưỡng hay không.
+       ============================================================ */
+    if (url.pathname === '/api/kho-chi-tiet') {
+      if (!env.ANH) return json({ loi: 'Chưa bật kho R2' }, 500);
+
+      const nhom = {
+        video: { so: 0, byte: 0, to: 0 },      /* to = số video > 6MB, phải cắt mảnh */
+        anhGoc: { so: 0, byte: 0 },
+        anhNho: { so: 0, byte: 0 },
+        ghiAm: { so: 0, byte: 0 },
+        khac: { so: 0, byte: 0 }
+      };
+      /* phân bố cỡ video, mốc chọn theo đúng các ngưỡng đang dùng trong mã */
+      const moc = [1, 3, 6, 15, 30, 60, 100, 200];   // MB
+      const bac = new Array(moc.length + 1).fill(0);
+      let toNhat = 0, tenToNhat = '', soTat = 0, byteTat = 0;
+
+      let con = undefined;
+      do {
+        const r = await env.ANH.list({ prefix: 'kt/', limit: 1000, cursor: con });
+        for (const o of r.objects) {
+          soTat++; byteTat += o.size;
+          const ten = o.key.toLowerCase();
+          if (/\.(mp4|mov|webm)$/.test(ten)) {
+            nhom.video.so++; nhom.video.byte += o.size;
+            if (o.size > 6 * 1048576) nhom.video.to++;
+            const mb = o.size / 1048576;
+            let i = 0; while (i < moc.length && mb > moc[i]) i++;
+            bac[i]++;
+            if (o.size > toNhat) { toNhat = o.size; tenToNhat = o.key; }
+          } else if (/-nho\.(jpe?g|png|webp)$/.test(ten)) {
+            nhom.anhNho.so++; nhom.anhNho.byte += o.size;
+          } else if (/\.(jpe?g|png|webp|heic|heif)$/.test(ten)) {
+            nhom.anhGoc.so++; nhom.anhGoc.byte += o.size;
+          } else if (/\.(weba|m4a|mp3)$/.test(ten)) {
+            nhom.ghiAm.so++; nhom.ghiAm.byte += o.size;
+          } else {
+            nhom.khac.so++; nhom.khac.byte += o.size;
+          }
+        }
+        con = r.truncated ? r.cursor : undefined;
+      } while (con);
+
+      /* bày sẵn số đã tính để người đọc khỏi phải bấm máy tính */
+      const mb = b => Math.round(b / 1048576 * 10) / 10;
+      const pt = b => byteTat ? Math.round(b / byteTat * 1000) / 10 : 0;
+      const ra = {};
+      for (const k in nhom) {
+        ra[k] = {
+          soFile: nhom[k].so,
+          mb: mb(nhom[k].byte),
+          phanTramDungLuong: pt(nhom[k].byte),
+          trungBinhMb: nhom[k].so ? Math.round(nhom[k].byte / nhom[k].so / 1048576 * 100) / 100 : 0
+        };
+        if (k === 'video') ra[k].soVideoPhaiCatManh = nhom[k].to;
+      }
+
+      /* nhãn cho từng bậc: "0-1MB", "1-3MB", …, "trên 200MB" */
+      const nhan = [];
+      for (let i = 0; i <= moc.length; i++)
+        nhan.push(i === 0 ? '0-' + moc[0] + 'MB'
+          : i === moc.length ? 'trên ' + moc[moc.length - 1] + 'MB'
+            : moc[i - 1] + '-' + moc[i] + 'MB');
+      const phanBo = {};
+      nhan.forEach((n, i) => { if (bac[i]) phanBo[n] = bac[i]; });
+
+      return json({
+        tongSoFile: soTat,
+        tongMb: mb(byteTat),
+        theoLoai: ra,
+        videoPhanBoCo: phanBo,
+        videoToNhatMb: mb(toNhat),
+        videoToNhat: tenToNhat,
+        ghiChu: 'Chỉ đọc, không sửa gì. "anhNho" là bản thu nhỏ tự sinh, ' +
+          'mỗi ảnh gốc có một bản — đừng cộng chung với anhGoc.'
+      });
+    }
+
+    /* ============================================================
        AI ĐANG MỞ PHIẾU NÀY (21/10 — Trường chốt sau khi xem bộ hiệu ứng của
        web Camera Audit).
 

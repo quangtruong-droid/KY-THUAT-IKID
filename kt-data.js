@@ -2088,8 +2088,35 @@ const anhNho = u => {
 
 /* Video: không nén được trên máy, chỉ kiểm tra rồi gửi thẳng.
    Giờ video do app Camera của máy quay nên web KHÔNG ép được độ phân giải.
-   iPhone để 4K60 thì ~400MB/phút, 1080p30 thì ~60MB/phút — nên phải nói rõ cách hạ. */
-const HAP_DAT = 'Vào Cài đặt → Camera → Quay video → chọn 1080p 30fps là nhẹ hơn 6 lần.';
+   iPhone để 4K60 thì ~400MB/phút, 1080p30 thì ~60MB/phút — nên phải nói rõ cách hạ.
+
+   ĐỔI 06/11: nhắc 720p chứ không phải 1080p nữa. Lý do là số đo ngoài hiện
+   trường: đường lên ở trung tâm thương mại giờ đông khách đo được ~117 KB/s.
+   Với tốc độ đó, 20 giây video quay ở:
+       4K30    ~125 MB  →  18 phút
+       1080p30  ~43 MB  →   6 phút
+       720p30   ~13 MB  →   2 phút
+   Kỹ thuật đứng giữa khu vui chơi không ai chờ nổi 18 phút. 720p vẫn thừa nét
+   để soi một cái máy hỏng, một mối nối cháy, một cái đèn chớp tắt. */
+const HAP_DAT = 'Vào Cài đặt → Camera → Quay video → chọn 720p 30fps là nhẹ hơn 10 lần.';
+
+/* ============================================================
+   TRẦN THỜI LƯỢNG VIDEO (Trường chốt 06/11: hạ từ 75 xuống).
+
+   ĐÂY LÀ ĐÒN MẠNH NHẤT VÀ RẺ NHẤT để chữa bệnh gửi video chậm: dung lượng
+   tỉ lệ THẲNG với thời lượng, nên cắt thời lượng là cắt thẳng thời gian gửi.
+   Không thư viện nào, không rủi ro nào.
+
+   Trước đây: chặn ở 75 giây nhưng câu báo lỗi lại ghi "tối đa 60 giây" —
+   lệch nhau, người dùng quay 70 giây thì web vẫn nhận trong khi màn hình nói
+   là không. Giờ gom về MỘT hằng số, mọi chỗ hiển thị đều đọc từ đây.
+
+   20 GIÂY CHỨ KHÔNG PHẢI 15: 15 giây vừa đủ quay hiện tượng, nhưng không đủ
+   để vừa chỉ chỗ vừa cho thấy hiện tượng (bật máy lên, đợi nó giật, quay cận
+   mối nối). 20 giây ở 720p vẫn chỉ ~13 MB, gửi 2 phút — vẫn đạt mục tiêu.
+   Muốn đổi thì sửa đúng dòng dưới đây, không phải tìm chỗ nào khác.
+   ============================================================ */
+const TOI_DA_GIAY = 20;
 /* Trần 200MB (Trường chốt 01/09 — trước là 92MB). Cloudflare chặn mỗi lần gửi
    100MB, nên video to đi đường CẮT MẢNH 80MB rồi ghép lại trên kho. */
 const TRAN_VIDEO = 200 * 1024 * 1024;
@@ -2107,15 +2134,24 @@ async function taiVideo(file, phieuId, tien, uuTien) {
   /* doDaiVideo không bao giờ nổ nữa: đọc được thì trả số đo, không đọc nổi /
      quá 8 giây thì trả {khongRo:true} và mình CỨ GỬI (07/09) */
   const m = await doDaiVideo(file).catch(() => ({ khongRo: true }));
-  if (m.giay > 75) throw new Error('Video dài ' + Math.round(m.giay) + ' giây — tối đa 60 giây. Quay lại đoạn ngắn hơn.');
+  /* CHẶN NGAY LÚC CHỌN, trước khi gửi byte nào. Câu báo phải nói đủ ba thứ:
+     video dài bao nhiêu, trần là bao nhiêu, và phải làm gì tiếp — chứ không
+     chỉ "không hợp lệ" rồi để người ta đoán. */
+  if (m.giay > TOI_DA_GIAY)
+    throw new Error('Video dài ' + Math.round(m.giay) + ' giây — tối đa ' + TOI_DA_GIAY +
+      ' giây. Quay lại đoạn ngắn hơn, chỉ cần thấy rõ chỗ hỏng là đủ.');
   /* Camera trong web của iPhone quay thấp hơn hẳn app Camera thật — web không chỉnh được.
      Video mờ thì nói rõ ngay lúc chọn, đừng để kỹ thuật gửi xong mới biết không soi được. */
   const canh = Math.max(m.w || 0, m.h || 0);
   if (canh && canh < 1280 && typeof nhac === 'function')
     nhac('Video này chỉ ' + Math.min(m.w, m.h) + 'p nên sẽ mờ. Muốn nét: quay bằng app Camera của máy rồi bấm "Chọn video có sẵn".', 'canh');
-  /* nặng nhưng vẫn nhận: cảnh báo để lần sau đỡ tốn dữ liệu di động */
-  if (file.size > 45 * 1024 * 1024 && typeof nhac === 'function')
-    nhac('Video ' + mb + 'MB, gửi sẽ lâu. ' + HAP_DAT, 'canh');
+  /* NGƯỠNG CẢNH BÁO NẶNG: hạ 45MB → 15MB (06/11).
+     45MB là ngưỡng hợp lý khi trần còn 75 giây. Giờ trần 20 giây mà file vẫn
+     quá 15MB thì chắc chắn máy đang để 1080p hoặc 4K — đó đúng là lúc cần
+     nhắc, chứ để tới 45MB thì đã muộn: 45MB ở 117 KB/s là 6,5 phút rồi. */
+  if (file.size > 15 * 1024 * 1024 && typeof nhac === 'function')
+    nhac('Video ' + mb + 'MB, gửi mất khoảng ' + Math.max(1, Math.round(file.size / 1024 / 117 / 60)) +
+      ' phút trên mạng 4G yếu. ' + HAP_DAT, 'canh');
   if (file.size > NGUONG_MANH) return taiVideoTo(file, phieuId, tien);
   /* gửi bù từ hộp chờ thì chen ngay như ảnh (24/09) */
   return taiLen(file, phieuId, file.type || 'video/mp4', '', tien, uuTien);

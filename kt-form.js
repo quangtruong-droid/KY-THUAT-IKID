@@ -2008,7 +2008,8 @@ function formThemAnh(dich) {
       '<button class="cn" data-daro="1"><em style="background:#DCFCE7;color:#15803D"><img width="22" height="22" class="kgIc" src="ic/nghiem-thu.webp" alt="" loading="lazy"></em>Đã rõ</button>' +
       '<button class="cn" data-thoaic="1"><em style="background:#EDE9FE;color:#6D28D9"><img width="22" height="22" class="kgIc" src="ic/kg-ghiam.webp" alt="" loading="lazy"></em>Tin thoại</button>' +
       '</div>' : '';
-  moSheet(khungSheet('Thêm ảnh / video', 'Tối đa 10 ảnh · video tối đa 60 giây · muốn nét thì quay bằng app Camera',
+  moSheet(khungSheet('Thêm ảnh / video',
+    'Tối đa 10 ảnh · video tối đa ' + GIAY_VID() + ' giây · để camera ở 720p cho nhẹ',
     luoiChat +
     '<button class="mn" data-chon="chup"><div class="ic" style="background:#E0F2FE;color:#0369A1"><img width="22" height="22" class="mnIc" src="ic/kg-chupanh.webp" alt="" loading="lazy"></div><div><b>Chụp ảnh</b><div class="s">mở camera, chụp xong dùng luôn</div></div><span class="mui">›</span></button>' +
     '<button class="mn" data-chon="album"><div class="ic" style="background:#DCFCE7;color:#15803D"><img width="22" height="22" class="mnIc" src="ic/kg-thuvien.webp" alt="" loading="lazy"></div><div><b>Chọn ảnh từ album</b><div class="s">chọn nhiều ảnh một lần</div></div><span class="mui">›</span></button>' +
@@ -2017,8 +2018,10 @@ function formThemAnh(dich) {
        Lý do: bấm quay ngay trong web thì iPhone mở camera ở chế độ dành cho web,
        Apple khoá quanh 720p — web KHÔNG có lệnh nào ép lên 1080p/4K. Còn quay bằng
        app Camera của máy thì theo đúng cài đặt máy (1080p, 4K), nét gấp mấy lần. */
-    '<button class="mn" data-chon="video"><div class="ic" style="background:#DCFCE7;color:#15803D"><img width="22" height="22" class="mnIc" src="ic/kg-video.webp" alt="" loading="lazy"></div><div><b>Chọn video có sẵn — NÉT NHẤT</b><div class="s">Quay bằng app Camera của máy trước, rồi vào đây chọn</div></div><span class="mui">›</span></button>' +
-    '<button class="mn" data-chon="quaymay"><div class="ic" style="background:#FEF3C7;color:#B45309"><img width="22" height="22" class="mnIc" src="ic/kg-video.webp" alt="" loading="lazy"></div><div><b>Quay nhanh trong web — mờ hơn</b><div class="s">Tiện nhưng iPhone khoá ~720p, chỉ dùng khi cần gấp</div></div><span class="mui">›</span></button>' +
+    /* 06/11: mô tả hai nút nói luôn TRẦN GIÂY và cỡ file phải chờ — người dùng
+       đọc được ngay tại chỗ bấm, không phải chọn xong mới biết bị từ chối. */
+    '<button class="mn" data-chon="video"><div class="ic" style="background:#DCFCE7;color:#15803D"><img width="22" height="22" class="mnIc" src="ic/kg-video.webp" alt="" loading="lazy"></div><div><b>Chọn video có sẵn — NÉT NHẤT</b><div class="s">Quay bằng app Camera trước · tối đa ' + GIAY_VID() + ' giây</div></div><span class="mui">›</span></button>' +
+    '<button class="mn" data-chon="quaymay"><div class="ic" style="background:#FEF3C7;color:#B45309"><img width="22" height="22" class="mnIc" src="ic/kg-video.webp" alt="" loading="lazy"></div><div><b>Quay nhanh trong web — mờ hơn</b><div class="s">Tiện, file nhẹ, gửi nhanh · tối đa ' + GIAY_VID() + ' giây</div></div><span class="mui">›</span></button>' +
     /* Hai việc phụ chuyển từ đáy màn vào đây — đáy chỉ để nút chính, cho gọn.
        Ảnh KT-24 đã chốt cũng chỉ có 3 nút Nhận việc và ô nhắn. */
     (PH && laTho() && PH.trangThai !== 'nghiemthu' && PH.trangThai !== 'huy'
@@ -2110,8 +2113,71 @@ function boDaiLayAnh() {
   const e = document.getElementById('daiLayAnh'); if (e) e.remove();
 }
 
+/* Trần giây lấy từ kt-data.js (file đó nạp TRƯỚC file này trong index.html).
+   Bọc thành hàm để đổi hằng số một chỗ là mọi dòng chữ tự đổi theo. */
+function GIAY_VID() { return (typeof TOI_DA_GIAY === 'number' ? TOI_DA_GIAY : 20); }
+
+/* ============================================================
+   NHẮC CÀI CAMERA 720p — HIỆN TRƯỚC KHI MỞ CAMERA (06/11, Trường chốt)
+
+   VÌ SAO PHẢI ĐƯA LÊN TRƯỚC: bản cũ chỉ nhắc SAU khi người dùng đã chọn xong
+   một file nặng. Lúc đó đã muộn — video đã quay rồi, không ai quay lại lần nữa
+   chỉ vì một dòng chữ màu vàng. Nhắc trước thì họ chỉnh máy một lần, dùng mãi.
+
+   KHÔNG BẮT BẤM THÊM MỖI LẦN. Trường: "làm ra web để dùng tiện hơn chứ méo
+   phải để vẽ thêm việc." Nên màn này chỉ hiện ĐÚNG MỘT LẦN cho mỗi máy; bấm
+   "Đã chỉnh rồi" là từ đó về sau đi thẳng vào camera như cũ. Ai lỡ bấm "Để
+   sau" thì lần tới vẫn được hỏi lại — chỉnh máy là việc 30 giây làm một lần,
+   đáng để hỏi tới khi xong.
+
+   Cờ lưu trong máy, KHÔNG lưu trên máy chủ: đây là cài đặt của từng cái điện
+   thoại, không phải của con người. Một kỹ thuật đổi máy thì máy mới vẫn phải
+   được nhắc.
+   ============================================================ */
+const KHOA_NHAC_CAM = 'kt_cam720_v1';
+function daBietCaiCam() { try { return localStorage.getItem(KHOA_NHAC_CAM) === '1'; } catch (e) { return false; } }
+function nhoDaBietCaiCam() { try { localStorage.setItem(KHOA_NHAC_CAM, '1'); } catch (e) { } }
+
+let CAM_LAM_TIEP = null;                 /* việc chạy tiếp sau khi người dùng bấm */
+
+function manNhacCamera(kieu) {
+  CAM_LAM_TIEP = kieu;
+  const g = GIAY_VID();
+  moSheet(khungSheet('Chỉnh camera một lần, dùng mãi',
+    'Mất 30 giây, sau đó gửi video nhanh hơn 10 lần',
+    '<div class="hop-canh">Ngoài cơ sở sóng 4G yếu đo được khoảng <b>117 KB/s</b>. ' +
+    'Cùng một đoạn ' + g + ' giây, máy để mức nào thì chờ bấy nhiêu:<br><br>' +
+    '· 4K &nbsp;&nbsp;&nbsp;&nbsp;→ ~125 MB → chờ <b>18 phút</b><br>' +
+    '· 1080p → ~43 MB &nbsp;→ chờ <b>6 phút</b><br>' +
+    '· <b>720p &nbsp;→ ~13 MB &nbsp;→ chờ 2 phút</b><br><br>' +
+    '720p vẫn thừa nét để nhìn rõ chỗ hỏng.</div>' +
+    '<div class="qlNhac" style="margin-top:12px"><b>Cách chỉnh trên iPhone:</b><br>' +
+    'Cài đặt → Camera → Quay video → chọn <b>720p HD/30 fps</b></div>' +
+    '<div class="qlNhac"><b>Trên Android:</b><br>' +
+    'Mở app Camera → Cài đặt (bánh răng) → Độ phân giải video → chọn <b>HD 720p</b></div>' +
+    '<div class="qlNhac" style="margin-top:10px">Video tối đa <b>' + g + ' giây</b>. ' +
+    'Dài hơn web sẽ không nhận.</div>',
+    '<button class="btn v" data-camsau="1">Để sau</button>' +
+    '<button class="btn pri" style="flex:1" data-camok="1">Đã chỉnh rồi — chọn video</button>'));
+}
+
+/* hai nút của màn nhắc. Bấm là một cử chỉ thật của người dùng nên iPhone vẫn
+   cho mở camera ngay trong lượt xử lý này — không được hẹn giờ rồi mới mở. */
+document.addEventListener('click', e => {
+  const ok = e.target.closest && e.target.closest('[data-camok]');
+  const sau = e.target.closest && e.target.closest('[data-camsau]');
+  if (!ok && !sau) return;
+  e.preventDefault();
+  const kieu = CAM_LAM_TIEP; CAM_LAM_TIEP = null;
+  if (ok) nhoDaBietCaiCam();              /* "để sau" thì KHÔNG ghi cờ — lần sau hỏi lại */
+  if (kieu) chonFile(kieu);
+  else dongSheet();
+});
+
 function chonFile(kieu) {                 // 'chup' | 'album' | 'video' | 'quaymay'
   const laVid = kieu === 'video' || kieu === 'quaymay';
+  /* Lần đầu chọn video trên máy này: nhắc chỉnh camera trước đã. */
+  if (laVid && !daBietCaiCam()) { manNhacCamera(kieu); return; }
   const inp = oChonFile();
   inp.accept = laVid ? 'video/*' : 'image/*';
   inp.multiple = kieu === 'album';

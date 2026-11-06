@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0E7490">
 <title>Kỹ thuật IKID</title>
-<!-- ?v=260: icon doi 21/10 (them dai teal + banh rang + chu KT). Phai co
-     ?v= ne cache, khong thi iPhone giu icon cu tren man hinh chinh rat lau. -->
-<link rel="icon" href="icon-192.png?v=260">
-<link rel="apple-touch-icon" href="icon-192.png?v=260">
+<!-- ?v=261 (06/11): tran thoi luong video 75 -> 20 giay, them man nhac cai
+     camera 720p truoc khi mo camera. Phai co ?v= ne cache, khong thi iPhone
+     giu ban cu tren man hinh chinh rat lau. -->
+<link rel="icon" href="icon-192.png?v=261">
+<link rel="apple-touch-icon" href="icon-192.png?v=261">
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,10 +20,10 @@
    máy nào đang lưu 'toi' từ trước cũng về sáng ngay, khỏi phải xoá tay. */
 (function(){try{document.documentElement.dataset.nen='sang';
 localStorage.removeItem('kt_nen_v1');}catch(e){}})();</script>
-<link rel="stylesheet" href="kt.css?v=260">
+<link rel="stylesheet" href="kt.css?v=261">
 <!-- Bộ hiệu ứng giao diện (12/10) — Trường gửi, trích từ IKID Camera Audit.
      Đặt SAU kt.css để mấy biến --hu-* ở cuối đè được bản gốc. -->
-<link rel="stylesheet" href="hieu-ung.css?v=260">
+<link rel="stylesheet" href="hieu-ung.css?v=261">
 </head>
 <body>
 
@@ -115,22 +116,22 @@ localStorage.removeItem('kt_nen_v1');}catch(e){}})();</script>
 <div class="chan-luu an" id="chanLuu"><span class="vong"></span> Đang lưu…</div>
 <!-- hieu-ung.js phải nạp TRƯỚC 12 file kia: kt-data.js gọi HieuUng ngay trong
      hàm nhac(), mà nhac() có thể chạy từ lúc web vừa mở (báo mất mạng…) -->
-<script src="hieu-ung.js?v=260" defer></script>
+<script src="hieu-ung.js?v=261" defer></script>
 <!-- Bộ hiệu ứng đợt 2 (21/10) — khung xám chờ mạng, rung phản hồi, thanh
      hoàn tác. Tách riêng file nhỏ theo cách của web Camera Audit: sửa một
      hiệu ứng thì chỉ tải lại 5 KB thay vì cả kt-ui.js 140 KB. -->
-<script src="kt-hieuung2.js?v=260" defer></script>
-<script src="kt-cauhinh.js?v=260" defer></script>
-<script src="kt-data.js?v=260" defer></script>
-<script src="kt-ui.js?v=260" defer></script>
-<script src="kt-form.js?v=260" defer></script>
-<script src="kt-quanly.js?v=260" defer></script>
-<script src="kt-anh.js?v=260" defer></script>
-<script src="kt-zalo.js?v=260" defer></script>
-<script src="kt-radar.js?v=260" defer></script>
-<script src="kt-tongket.js?v=260" defer></script>
-<script src="kt-xlsx.js?v=260" defer></script>
-<script src="kt-day.js?v=260" defer></script>
-<script src="kt-chay.js?v=260" defer></script>
+<script src="kt-hieuung2.js?v=261" defer></script>
+<script src="kt-cauhinh.js?v=261" defer></script>
+<script src="kt-data.js?v=261" defer></script>
+<script src="kt-ui.js?v=261" defer></script>
+<script src="kt-form.js?v=261" defer></script>
+<script src="kt-quanly.js?v=261" defer></script>
+<script src="kt-anh.js?v=261" defer></script>
+<script src="kt-zalo.js?v=261" defer></script>
+<script src="kt-radar.js?v=261" defer></script>
+<script src="kt-tongket.js?v=261" defer></script>
+<script src="kt-xlsx.js?v=261" defer></script>
+<script src="kt-day.js?v=261" defer></script>
+<script src="kt-chay.js?v=261" defer></script>
 </body>
 </html>
